@@ -1,0 +1,25 @@
+{
+  "name": "wt.js",
+  "version": "0.1.0",
+  "description": "web-tracking tool",
+  "main": "lib/",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/XiangnianZhou/wt.js.git"
+  },
+  "keywords": [
+    "track",
+    "wt",
+    "wt.js",
+    "wtjs"
+  ],
+  "author": "xiangnian",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/XiangnianZhou/wt.js/issues"
+  },
+  "homepage": "https://github.com/XiangnianZhou/wt.js#readme"
+}
