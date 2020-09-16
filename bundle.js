@@ -1,15 +1,134 @@
+'use strict';
+
+Object.defineProperty(exports, '__esModule', { value: true });
+
+const CACHE_DEVICE_ID = '__wt_device_id';
+const CACHE_USER_ID = '__wt_user_id';
+const CACHE_FIRST_DAY = '__wt_first_day';
+
+let deviceId = wx.getStorageSync(CACHE_DEVICE_ID);
+let userId = '';
+const ipInfo = {
+  ip: '',
+  city: '',
+  country: ''
+};
+
+class AliLogTracker {
+  constructor(host, project, logstore) {
+    this.uri = `https://${project}.${host}/logstores/${logstore}/track?APIVersion=0.6.0`;
+  }
+
+  logger(params) {
+    wx.request({
+      method: 'GET',
+      url: this.uri,
+      data: params
+    });
+  }
+}
+
+function getUUid() {
+  return "" + Date.now() + '-' + Math.floor(1e7 * Math.random()) + '-' + Math.random().toString(16).replace('.', '') + '-' + String(Math.random() * 31242).replace('.', '').slice(0, 8);
+}
+
+
+function createDeviceId() {
+  deviceId = getUUid();
+  wx.setStorageSync(CACHE_DEVICE_ID, deviceId);
+  wx.setStorageSync(CACHE_FIRST_DAY, Date.now());
+  return deviceId
+}
+
+function getIp() {
+  return new Promise(resolve => {
+    wx.request({
+      method: 'GET',
+      url: 'https://pv.sohu.com/cityjson',
+      success(response) {
+        const match = response.data.match(/=\s(\{[^}]+\})/);
+        if (match && match[1]) {
+          try {
+            const c = JSON.parse(match[1]);
+            ipInfo.ip = c.cip;
+            if (/^\d+$/.test(c.cid)) {
+              ipInfo.city = c.cname;
+            } else {
+              ipInfo.country = c.cname;
+            }
+          } catch(e) {
+            ipInfo.ip = '0'; // 错误
+          } finally {
+            resolve();
+          }
+        }
+      }
+    });
+  })
+}
+
+
+class Wt {
+  constructor(host, project, logstore) {
+    this.logger = new AliLogTracker(host, project, logstore);
+    if (!deviceId) {
+      createDeviceId();
+    }
+  }
+
+  track(event, data) {
+    (ipInfo.ip ? Promise.resolve() : getIp()).then(() => {
+      const pages = getCurrentPages();
+      const currentPage = pages[pages.length - 1];
+      const url = currentPage && currentPage.route;
+
+      const formateData = {
+        event,
+        userId,
+        deviceId,
+        url: url || '',
+        ip: ipInfo.ip,
+        city: ipInfo.city,
+        country: ipInfo.country,
+        timestap: Date.now(),
+        ...data,
+        json: JSON.stringify(data.json || {})
+      };
+      
+      this.logger.logger(formateData);
+    });
+  }
+
+  
+  login(loginId) {
+    if (loginId) {
+      userId = loginId;
+      wx.setStorageSync(CACHE_USER_ID, loginId);
+    }
+  }
+}
+
+
+let wtCache = null;
+function createWt(host, project, logstore) {
+  if (wtCache) {
+    return wtCache
+  }
+  const wt = new Wt(host, project, logstore);
+  wtCache = wt;
+  return wt
+}
+
 // 参考 https://github.com/sensorsdata/sa-sdk-miniprogram
-import { createWt } from './wt'
-export { createWt } from './wt' 
 
-const wtMp = {}
-let wt
-let referrer = '直接打开'
+const wtMp = {};
+let wt;
+let referrer = '直接打开';
 
-export function initWt (host, project, logstore) {
-  wt = createWt(host, project, logstore)
-  trackSystemInfo()
-  initProxy()
+function initWt (host, project, logstore) {
+  wt = createWt(host, project, logstore);
+  trackSystemInfo();
+  initProxy();
   return wt
 }
 
@@ -27,7 +146,7 @@ const mpHook = {
   "onTabItemTap": 1,
   "onHide": 1,
   "onUnload": 1
-}
+};
 
 const mp_scene = {
   1000: '其他',
@@ -116,20 +235,11 @@ const mp_scene = {
   1148: '卡包-交通卡，打开小程序',
   1150: '扫一扫商品条码结果页打开小程序',
   1153: '“识物”结果页打开小程序'
-}
-
-function getMPScene() {
-  if (typeof key === "number" || (typeof key === "string" && key !== "")) {
-    key = String(key)
-    return mp_scene[key] || key
-  } else {
-    return "未取到值"
-  }
-}
+};
 
 function getMPScene (key) {
   if (typeof key === "number" || (typeof key === "string" && key !== "")) {
-    key = String(key)
+    key = String(key);
     return mp_scene[key] || key
   } else {
     return "未取到值"
@@ -138,92 +248,92 @@ function getMPScene (key) {
 
 function getPath(path) {
   if (typeof path === 'string') {
-    path = path.replace(/^\//, '')
+    path = path.replace(/^\//, '');
   } else {
-    path = '取值异常'
+    path = '取值异常';
   }
   return path
 }
 
 wtMp.autoTrackCustom = {
   appLaunch(para) {
-    const prop = {}
-    prop.scene = getMPScene(para.scene)
+    const prop = {};
+    prop.scene = getMPScene(para.scene);
     // prop.urlQuery = prop.scene
-    wt.track('appLaunch', prop)
+    wt.track('appLaunch', prop);
   },
   appShow(para) {
-    const prop = {}
+    const prop = {};
     if (para && para.path) {
-      prop.urlPath = getPath(para.path)
+      prop.urlPath = getPath(para.path);
     }
-    prop.scene = getMPScene(para.scene)
+    prop.scene = getMPScene(para.scene);
     // prop.urlQuery = prop.scene
-    wt.track('appShow', prop)
+    wt.track('appShow', prop);
   },
   appHide() {
-    const prop = {}
-    wt.track('appHide', prop)
+    const prop = {};
+    wt.track('appHide', prop);
   },
   pageLoad() {
-    const prop = {}
-    prop.from = referrer
-    const pages = getCurrentPages()
-    const currentPage = pages[pages.length - 1]
-    referrer = currentPage.route
-    prop.to = referrer
-    wt.track('pageLoad', prop)
+    const prop = {};
+    prop.from = referrer;
+    const pages = getCurrentPages();
+    const currentPage = pages[pages.length - 1];
+    referrer = currentPage.route;
+    prop.to = referrer;
+    wt.track('pageLoad', prop);
   }
-}
+};
 
 function mp_proxy(option, method, identifier) {
-  const newFunc = wtMp.autoTrackCustom[identifier]
+  const newFunc = wtMp.autoTrackCustom[identifier];
   
   if (option[method]) {
-    const oldFunc = option[method]
+    const oldFunc = option[method];
     option[method] = function() {
-      oldFunc.apply(this, arguments)
-      newFunc.apply(this, arguments)
-    }
+      oldFunc.apply(this, arguments);
+      newFunc.apply(this, arguments);
+    };
   } else {
     option[method] = function() {
-      newFunc.apply(this, arguments)
-    }
+      newFunc.apply(this, arguments);
+    };
   }
 }
 
 function click_proxy(option, method) {
-  const oldFunc = option[method]
+  const oldFunc = option[method];
   option[method] = function() {
-    let prop = {}
+    let prop = {};
     if (arguments[0] && typeof arguments[0] === 'object') {
-      const target = arguments[0].currentTarget || {}
-      const dataset = target.dataset || {}
+      const target = arguments[0].currentTarget || {};
+      const dataset = target.dataset || {};
       if (dataset.wt) {
-        prop['type'] = arguments[0]['type']
+        prop['type'] = arguments[0]['type'];
         // prop['elementId'] = target.id
-        prop['value'] = dataset['wtValue'] || ''
+        prop['value'] = dataset['wtValue'] || '';
         // prop['tag'] = dataset['wt_tag'] || ''
-        wt.track(dataset.wt, prop)
+        wt.track(dataset.wt, prop);
       }
     }
     return oldFunc && oldFunc.apply(this, arguments)
-  }
+  };
 }
 
 function trackSystemInfo() {
-  const info = {}
+  const info = {};
   function getNetwork() {
     wx.getNetworkType({
       success(t) {
-        info.networkType = t["networkType"]
+        info.networkType = t["networkType"];
       },
       complete: getSystemInfo
-    })
+    });
   }
 
   function formatSystem(system) {
-    const _system = system.toLowerCase()
+    const _system = system.toLowerCase();
     if (_system === 'ios') {
       return 'iOS'
     } else if (_system === 'android') {
@@ -236,59 +346,62 @@ function trackSystemInfo() {
   function getSystemInfo() {
     wx.getSystemInfo({
       success(t) {
-        info.manufacturer = t["brand"]
-        info.model = t["model"]
-        info.screenWidth = Number(t["screenWidth"])
-        info.screenHeight = Number(t["screenHeight"])
-        info.os = formatSystem(t["platform"])
-        info.osVersion = t["system"].indexOf(' ') > -1 ? t["system"].split(' ')[1] : t["system"]
+        info.manufacturer = t["brand"];
+        info.model = t["model"];
+        info.screenWidth = Number(t["screenWidth"]);
+        info.screenHeight = Number(t["screenHeight"]);
+        info.os = formatSystem(t["platform"]);
+        info.osVersion = t["system"].indexOf(' ') > -1 ? t["system"].split(' ')[1] : t["system"];
       },
       complete() {
-        createWt().track('deviceInfo', info)
+        createWt().track('deviceInfo', info);
       }
-    })
+    });
   }
 
-  getNetwork()
+  getNetwork();
 }
 
 function initProxy() {
-  const oldApp = App
+  const oldApp = App;
   App = function(option) {
-    mp_proxy(option, "onLaunch", 'appLaunch')
-    mp_proxy(option, "onShow", 'appShow')
-    mp_proxy(option, "onHide", 'appHide')
-    oldApp.apply(this, arguments)
-  }
+    mp_proxy(option, "onLaunch", 'appLaunch');
+    mp_proxy(option, "onShow", 'appShow');
+    mp_proxy(option, "onHide", 'appHide');
+    oldApp.apply(this, arguments);
+  };
 
 
-  const oldPage = Page
+  const oldPage = Page;
   Page = function(option) {
     for (let m in option) {
       if (typeof(option[m]) === 'function' && !mpHook[m]) {
-        click_proxy(option, m)
+        click_proxy(option, m);
       }
     }
 
-    mp_proxy(option, "onLoad", 'pageLoad')
+    mp_proxy(option, "onLoad", 'pageLoad');
     // mp_proxy(option, "onShow", 'pageShow')
-    oldPage.apply(this, arguments)
-  }
+    oldPage.apply(this, arguments);
+  };
 
-  const oldComponent = Component
+  const oldComponent = Component;
   Component = function(option) {
     try {
       for (let m in option) {
         if (typeof(option[m]) === 'function' && !mpHook[m]) {
-          click_proxy(option, m)
+          click_proxy(option, m);
         }
       }
 
-      mp_proxy(option.methods, 'onLoad', 'pageLoad')
+      mp_proxy(option.methods, 'onLoad', 'pageLoad');
       // mp_proxy(option.methods, 'onShow', 'pageShow')
-      oldComponent.apply(this, arguments)
+      oldComponent.apply(this, arguments);
     } catch (e) {
-      oldComponent.apply(this, arguments)
+      oldComponent.apply(this, arguments);
     }
-  }
+  };
 }
+
+exports.createWt = createWt;
+exports.initWt = initWt;

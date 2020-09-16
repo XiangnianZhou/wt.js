@@ -1,10 +1,9 @@
 {
-  "name": "wt.js",
+  "name": "wt-wx",
   "version": "0.1.0",
   "description": "web-tracking tool",
-  "main": "lib/",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "biuld": "npx rollup src/mpwt.js -o index.js -f cjs"
   },
   "repository": {
     "type": "git",
@@ -16,10 +15,15 @@
     "wt.js",
     "wtjs"
   ],
+  "main": "index.js",
+  "miniprogram": "index.js",
   "author": "xiangnian",
   "license": "ISC",
   "bugs": {
     "url": "https://github.com/XiangnianZhou/wt.js/issues"
   },
-  "homepage": "https://github.com/XiangnianZhou/wt.js#readme"
+  "homepage": "https://github.com/XiangnianZhou/wt.js#readme",
+  "dependencies": {
+    "rollup": "^2.27.0"
+  }
 }
