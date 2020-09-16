@@ -23,7 +23,7 @@
     "url": "https://github.com/XiangnianZhou/wt.js/issues"
   },
   "homepage": "https://github.com/XiangnianZhou/wt.js#readme",
-  "dependencies": {
+  "devDependencies": {
     "rollup": "^2.27.0"
   }
 }
