@@ -82,6 +82,7 @@ export class Wt {
         event,
         userId,
         deviceId,
+        wtVersion: '0.1.5',
         url: url || '',
         ip: ipInfo.ip,
         city: ipInfo.city,
