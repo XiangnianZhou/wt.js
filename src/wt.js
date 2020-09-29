@@ -79,15 +79,14 @@ export class Wt {
       const url = currentPage && currentPage.route
 
       const formateData = {
-        event,
-        userId,
-        deviceId,
-        wtVersion: '0.1.5',
-        url: url || '',
-        ip: ipInfo.ip,
-        city: ipInfo.city,
-        country: ipInfo.country,
-        timestap: Date.now(),
+        $event: event,
+        $userId: userId,
+        $deviceId: deviceId,
+        $url: url || '',
+        $ip: ipInfo.ip,
+        $city: ipInfo.city,
+        $country: ipInfo.country,
+        $timestap: Date.now(),
         ...data,
         json: JSON.stringify(data.json || {})
       }

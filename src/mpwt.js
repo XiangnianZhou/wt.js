@@ -139,16 +139,16 @@ function getPath(path) {
 wtMp.autoTrackCustom = {
   appLaunch(para) {
     const prop = {}
-    prop.scene = getMPScene(para.scene)
+    prop.$scene = getMPScene(para.scene)
     // prop.urlQuery = prop.scene
     wt.track('appLaunch', prop)
   },
   appShow(para) {
     const prop = {}
     if (para && para.path) {
-      prop.urlPath = getPath(para.path)
+      prop.$urlPath = getPath(para.path)
     }
-    prop.scene = getMPScene(para.scene)
+    prop.$scene = getMPScene(para.scene)
     // prop.urlQuery = prop.scene
     wt.track('appShow', prop)
   },
@@ -158,11 +158,11 @@ wtMp.autoTrackCustom = {
   },
   pageLoad() {
     const prop = {}
-    prop.from = referrer
+    prop.$from = referrer
     const pages = getCurrentPages()
     const currentPage = pages[pages.length - 1]
     referrer = currentPage.route
-    prop.to = referrer
+    prop.$to = referrer
     wt.track('pageLoad', prop)
   }
 }
@@ -191,9 +191,9 @@ function click_proxy(option, method) {
       const target = arguments[0].currentTarget || {}
       const dataset = target.dataset || {}
       if (dataset.wt) {
-        prop['type'] = arguments[0]['type']
+        prop['$type'] = arguments[0]['type']
         // prop['elementId'] = target.id
-        prop['value'] = dataset['wtValue'] || ''
+        prop['$value'] = dataset['wtValue'] || ''
         // prop['tag'] = dataset['wt_tag'] || ''
         wt.track(dataset.wt, prop)
       }
@@ -227,12 +227,12 @@ function trackSystemInfo() {
   function getSystemInfo() {
     wx.getSystemInfo({
       success(t) {
-        info.manufacturer = t["brand"]
-        info.model = t["model"]
-        info.screenWidth = Number(t["screenWidth"])
-        info.screenHeight = Number(t["screenHeight"])
-        info.os = formatSystem(t["platform"])
-        info.osVersion = t["system"].indexOf(' ') > -1 ? t["system"].split(' ')[1] : t["system"]
+        info.$manufacturer = t["brand"]
+        info.$model = t["model"]
+        info.$screenWidth = Number(t["screenWidth"])
+        info.$screenHeight = Number(t["screenHeight"])
+        info.$os = formatSystem(t["platform"])
+        info.$osVersion = t["system"].indexOf(' ') > -1 ? t["system"].split(' ')[1] : t["system"]
       },
       complete() {
         createWt().track('deviceInfo', info)
