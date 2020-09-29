@@ -80,7 +80,7 @@ export class Wt {
 
       const formateData = {
         $event: event,
-        $userId: userId,
+        $userId: userId || deviceId,
         $deviceId: deviceId,
         $url: url || '',
         $ip: ipInfo.ip,
