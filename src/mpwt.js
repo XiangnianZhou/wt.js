@@ -207,7 +207,7 @@ function trackSystemInfo() {
   function getNetwork() {
     wx.getNetworkType({
       success(t) {
-        info.networkType = t["networkType"]
+        info.$networkType = t["networkType"]
       },
       complete: getSystemInfo
     })

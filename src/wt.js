@@ -7,7 +7,8 @@ let userId = ''
 const ipInfo = {
   ip: '',
   city: '',
-  country: ''
+  country: '',
+  cityId: ''
 }
 
 class AliLogTracker {
@@ -49,6 +50,7 @@ function getIp() {
             ipInfo.ip = c.cip
             if (/^\d+$/.test(c.cid)) {
               ipInfo.city = c.cname
+              ipInfo.cityId = c.cid
             } else {
               ipInfo.country = c.cname
             }
@@ -86,6 +88,7 @@ export class Wt {
         $ip: ipInfo.ip,
         $city: ipInfo.city,
         $country: ipInfo.country,
+        $cityId: ipInfo.cityId,
         $timestap: Date.now(),
         ...data,
         json: JSON.stringify(data.json || {})

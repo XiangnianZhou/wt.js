@@ -1,6 +1,6 @@
 {
   "name": "wt-wx",
-  "version": "0.1.7",
+  "version": "0.1.8",
   "description": "web-tracking tool",
   "scripts": {
     "build": "npx rollup src/mpwt.js -o dist/index.js -f cjs"
