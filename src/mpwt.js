@@ -146,7 +146,7 @@ wtMp.autoTrackCustom = {
   appShow(para) {
     const prop = {}
     if (para && para.path) {
-      prop.$urlPath = getPath(para.path)
+      prop.$pageId = getPath(para.path)
     }
     prop.$scene = getMPScene(para.scene)
     // prop.urlQuery = prop.scene
@@ -163,13 +163,12 @@ wtMp.autoTrackCustom = {
     const currentPage = pages[pages.length - 1]
     referrer = currentPage.route
     prop.$to = referrer
-    wt.track('pageLoad', prop)
+    wt.track('routerChange', prop)
   }
 }
 
 function mp_proxy(option, method, identifier) {
   const newFunc = wtMp.autoTrackCustom[identifier]
-  
   if (option[method]) {
     const oldFunc = option[method]
     option[method] = function() {
@@ -186,15 +185,15 @@ function mp_proxy(option, method, identifier) {
 function click_proxy(option, method) {
   const oldFunc = option[method]
   option[method] = function() {
-    let prop = {}
     if (arguments[0] && typeof arguments[0] === 'object') {
       const target = arguments[0].currentTarget || {}
       const dataset = target.dataset || {}
       if (dataset.wt) {
-        prop['$type'] = arguments[0]['type']
-        // prop['elementId'] = target.id
+        const prop = {}
+        const isClick = type => !!{tap: 1, longpress: 1, longtap: 1}[type]
+        const type = arguments[0]['type'] || ''
+        prop['$type'] = isClick(type) ? 'click' : type
         prop['$value'] = dataset['wtValue'] || ''
-        // prop['tag'] = dataset['wt_tag'] || ''
         wt.track(dataset.wt, prop)
       }
     }

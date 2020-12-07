@@ -72,6 +72,11 @@ export class Wt {
     if (!deviceId) {
       createDeviceId()
     }
+    const accountInfo = wx.getAccountInfoSync()
+    const { miniProgram: { appId } } = accountInfo
+    this.meta = {
+      $appId: appId
+    }
   }
 
   track(event, data) {
@@ -90,6 +95,7 @@ export class Wt {
         $country: ipInfo.country,
         $cityId: ipInfo.cityId,
         $timestap: Date.now(),
+        ...this.meta,
         ...data,
         json: JSON.stringify(data.json || {})
       }
