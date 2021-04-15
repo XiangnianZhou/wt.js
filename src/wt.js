@@ -4,12 +4,6 @@ const CACHE_FIRST_DAY = '__wt_first_day'
 
 let deviceId = wx.getStorageSync(CACHE_DEVICE_ID)
 let userId = ''
-const ipInfo = {
-  ip: '',
-  city: '',
-  country: '',
-  cityId: ''
-}
 
 class AliLogTracker {
   constructor(host, project, logstore) {
@@ -36,36 +30,6 @@ function createDeviceId() {
   wx.setStorageSync(CACHE_FIRST_DAY, Date.now())
   return deviceId
 }
-
-function getIp() {
-  return new Promise(resolve => {
-    wx.request({
-      method: 'GET',
-      url: 'https://pv.sohu.com/cityjson',
-      success(response) {
-        const match = response.data.match(/=\s(\{[^}]+\})/)
-        if (match && match[1]) {
-          try {
-            const c = JSON.parse(match[1])
-            ipInfo.ip = c.cip
-            if (/^\d+$/.test(c.cid)) {
-              ipInfo.city = c.cname
-              ipInfo.cityId = c.cid
-            } else {
-              ipInfo.country = c.cname
-            }
-          } catch(e) {
-            ipInfo.ip = '0' // 错误
-          } finally {
-            resolve()
-          }
-        }
-      }
-    })
-  })
-}
-
-
 export class Wt {
   constructor(host, project, logstore) {
     this.logger = new AliLogTracker(host, project, logstore)
@@ -80,28 +44,22 @@ export class Wt {
   }
 
   track(event, data) {
-    (ipInfo.ip ? Promise.resolve() : getIp()).then(() => {
-      const pages = getCurrentPages()
-      const currentPage = pages[pages.length - 1]
-      const url = currentPage && currentPage.route
+    const { options = {}, route = '' } = getCurrentPages().reverse()[0] || []
+    const query = Object.keys(options).map(k => `${k}=${options[k]}`).join('&')
+    const url = query ? `${route}?${query}` : route
 
-      const formateData = {
-        $event: event,
-        $userId: userId || deviceId,
-        $deviceId: deviceId,
-        $url: url || '',
-        $ip: ipInfo.ip,
-        $city: ipInfo.city,
-        $country: ipInfo.country,
-        $cityId: ipInfo.cityId,
-        $timestap: Date.now(),
-        ...this.meta,
-        ...data,
-        json: JSON.stringify(data.json || {})
-      }
-      
-      this.logger.logger(formateData)
-    })
+    const formateData = {
+      $event: event,
+      $userId: userId || deviceId,
+      $deviceId: deviceId,
+      $url: url || '',
+      $timestap: Date.now(),
+      ...this.meta,
+      ...data,
+      json: JSON.stringify(data.json || {})
+    }
+    
+    this.logger.logger(formateData)
   }
 
   
