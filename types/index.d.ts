@@ -4,7 +4,8 @@ interface EventData {
 
 export class Wt {
   track(event: string, data: EventData): void;
-  login(loginId: string): void
+  login(loginId: string): void;
+  sessionId: string;
 }
 
 export function createWt (): Wt

@@ -175,7 +175,7 @@ wtMp.autoTrackCustom = {
 
     // 约定参数 wt_session_id
     const sessionId = para.query.wt_session_id || genSessionId()
-    wt.$sessionId = sessionId
+    wt.sessionId = sessionId
     wt.track('appLaunch', prop)
   },
   appShow(para) {
@@ -186,8 +186,8 @@ wtMp.autoTrackCustom = {
     }
     // 约定参数 wt_session_id
     const sessionId = para.query.wt_session_id
-    if (sessionId && wt.$sessionId !== sessionId) {
-      wt.$sessionId = sessionId
+    if (sessionId && wt.sessionId !== sessionId) {
+      wt.sessionId = sessionId
     }
     prop.$scene = getMPScene(para.scene)
     wt.track('appShow', prop)

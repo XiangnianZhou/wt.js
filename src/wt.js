@@ -33,7 +33,7 @@ function createDeviceId() {
 export class Wt {
   constructor(host, project, logstore) {
     this.logger = new AliLogTracker(host, project, logstore)
-    this.$sessionId = ''
+    this.sessionId = ''
     if (!deviceId) {
       createDeviceId()
     }
@@ -45,7 +45,7 @@ export class Wt {
   }
 
   track(event, data) {
-    if (!this.$sessionId) {
+    if (!this.sessionId) {
       console.error('wt未初始化完毕，请在小程序加载完成后调用track')
       return
     }
@@ -58,7 +58,7 @@ export class Wt {
       $userId: userId || deviceId,
       $deviceId: deviceId,
       $url: url || '',
-      $sessionId: this.$sessionId,
+      $sessionId: this.sessionId,
       $timestap: Date.now(),
       ...this.meta,
       ...data,
