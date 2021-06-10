@@ -20,7 +20,7 @@ class AliLogTracker {
 }
 
 function getUUid() {
-  return "" + Date.now() + '-' + Math.floor(1e7 * Math.random()) + '-' + Math.random().toString(16).replace('.', '') + '-' + String(Math.random() * 31242).replace('.', '').slice(0, 8);
+  return '' + Date.now() + '-' + Math.floor(1e7 * Math.random()) + '-' + Math.random().toString(16).replace('.', '') + '-' + String(Math.random() * 31242).replace('.', '').slice(0, 8);
 }
 
 
@@ -33,6 +33,7 @@ function createDeviceId() {
 export class Wt {
   constructor(host, project, logstore) {
     this.logger = new AliLogTracker(host, project, logstore)
+    this.$sessionId = ''
     if (!deviceId) {
       createDeviceId()
     }
@@ -44,6 +45,10 @@ export class Wt {
   }
 
   track(event, data) {
+    if (!this.$sessionId) {
+      console.error('wt未初始化完毕，请在小程序加载完成后调用track')
+      return
+    }
     const { options = {}, route = '' } = getCurrentPages().reverse()[0] || []
     const query = Object.keys(options).map(k => `${k}=${options[k]}`).join('&')
     const url = query ? `${route}?${query}` : route
@@ -53,6 +58,7 @@ export class Wt {
       $userId: userId || deviceId,
       $deviceId: deviceId,
       $url: url || '',
+      $sessionId: this.$sessionId,
       $timestap: Date.now(),
       ...this.meta,
       ...data,

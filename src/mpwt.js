@@ -156,11 +156,26 @@ function getPath(path) {
   return path
 }
 
+function genSessionId() {
+  const arr = ['A','B','C','D','E','F','G','H','I','J','K','L','M','N','O','P','Q',
+  'R','S','T','U','V','W','X','Y','Z','a','b','c','d','e','f','g','h','i',
+  'j','k','l','m','n','o','p','q','r','s','t','u','v','w','x','y','z','r',
+  '0','1','2','3','4','5','6','7','8','9']
+  let str = ''
+  for (let i = 0; i < 12; i++) {
+    str += arr[Math.floor(Math.random() * arr.length)]
+  }
+  return `${Date.now()}-${str}`
+}
+
 wtMp.autoTrackCustom = {
   appLaunch(para) {
     const prop = {}
     prop.$scene = getMPScene(para.scene)
-    // prop.urlQuery = prop.scene
+
+    // 约定参数 wt_session_id
+    const sessionId = para.query.wt_session_id || genSessionId()
+    wt.$sessionId = sessionId
     wt.track('appLaunch', prop)
   },
   appShow(para) {
@@ -169,8 +184,12 @@ wtMp.autoTrackCustom = {
       prop.$pageId = getPath(para.path)
       prop.$urlPath = getPath(para.path)
     }
+    // 约定参数 wt_session_id
+    const sessionId = para.query.wt_session_id
+    if (sessionId && wt.$sessionId !== sessionId) {
+      wt.$sessionId = sessionId
+    }
     prop.$scene = getMPScene(para.scene)
-    // prop.urlQuery = prop.scene
     wt.track('appShow', prop)
   },
   appHide() {
